@@ -80,14 +80,6 @@ module Chess
       nil
     end
 
-    #def make_white_board
-    #
-    #end
-    #
-    #def make_black_board
-    #
-    #end
-
     def [](i,j)
       @board[i][j]
     end
