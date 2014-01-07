@@ -136,20 +136,21 @@ module Chess
 
     def in_check?(color)
       king = find_king(color)
-
+      check = false
       @board.each_with_index do |row, i|
         row.each_with_index do |cell, j|
           next if cell.nil? || cell.color == color
-          if cell.is_a?(Chess::SteppingPiece)
-            self.can_step?([i,j], king.position)
-          elsif cell.is_a?(Chess::SlidingPiece)
-            self.can_slide?([i,j], king.position)
-          elsif cell.is_a?(Chess::Pawn)
-            self.can_pawn_take?([i,j], king.position)
+          if cell.class.superclass == Chess::SteppingPiece
+            check = true if can_step?([i,j], king.position)
+          elsif cell.class.superclass == Chess::SlidingPiece
+            check = true if can_slide?([i,j], king.position)
+          elsif cell.class == Chess::Pawn
+            check = true if can_pawn_take?([i,j], king.position)
           end
         end
       end
-      nil
+
+      check
     end
 
     def find_king(color)
@@ -230,8 +231,11 @@ module Chess
     end
 
     def make_move(move_start, move_end)
+      #position_start = self[*move_start].position
+      position_end = *move_end
+      self[*move_start].position = position_end
       self[*move_end] = self[*move_start]
-      self[move_start.first, move_start.last] = nil
+      self[*move_start] = nil
     end
 
     def move(move_start, move_end)
