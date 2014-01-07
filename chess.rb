@@ -135,9 +135,31 @@ module Chess
     end
 
     def in_check?(color)
-      # find the king on the board
-      # see if any opposing pieces can move there
+      king = find_king(color)
 
+      @board.each_with_index do |row, i|
+        row.each_with_index do |cell, j|
+          next if cell.nil? || cell.color == color
+          if cell.is_a?(Chess::SteppingPiece)
+            self.can_step?([i,j], king.position)
+          elsif cell.is_a?(Chess::SlidingPiece)
+            self.can_slide?([i,j], king.position)
+          elsif cell.is_a?(Chess::Pawn)
+            self.can_pawn_take?([i,j], king.position)
+          end
+        end
+      end
+      nil
+    end
+
+    def find_king(color)
+      king = nil
+      @board.each do |row|
+        row.each do |cell|
+          king = cell if cell.is_a?(Chess::King) && cell.color == color
+        end
+      end
+      king
     end
 
     def can_step?(move_start, move_end)
@@ -175,12 +197,41 @@ module Chess
       self[*move_start].color != self[*move_end].color
     end
 
+    def can_pawn_move?(move_start, move_end)
+      if self[*move_start].color == :w
+        return move_start[0] - move_end[0] == 1 &&
+          move_start[1] == move_end[1]
+      elsif self[*move_start].color == :b
+        return move_start[0] - move_end[0] == -1 &&
+           move_start[1] == move_end[1]
+      end
+    end
+
+    def can_pawn_take?(move_start, move_end)
+      if self[*move_start].color == :w
+        return !self[*move_end].nil? &&
+          self[*move_start].color != self[*move_end].color &&
+          move_start[0] - move_end[0] == 1 &&
+          (move_start[1] - move_end[1]).abs == 1
+      elsif self[*move_start].color == :b
+        return !self[*move_end].nil? &&
+          self[*move_start].color != self[*move_end].color &&
+          move_start[0] - move_end[0] == -1 &&
+          (move_start[1] - move_end[1]).abs == 1
+      end
+    end
+
     def cartesian_to_polar(x, y)
       theta = [(y[0] - x[0]), (y[1] - x[1])]
       radius = [theta[0].abs, theta[1].abs].max
       theta[0] = (theta[0].to_f / radius) unless radius == 0
       theta[1] = (theta[1].to_f / radius) unless radius == 0
       [theta, radius]
+    end
+
+    def make_move(move_start, move_end)
+      self[*move_end] = self[*move_start]
+      self[move_start.first, move_start.last] = nil
     end
 
     def move(move_start, move_end)
@@ -190,43 +241,17 @@ module Chess
       if self[*move_start].class <= Chess::SlidingPiece
         if can_slide?(move_start, move_end) &&
             can_take?(move_start, move_end)
-          self[*move_end] = self[*move_start]
-          self[move_start.first, move_start.last] = nil
+          make_move(move_start, move_end)
         end
       elsif self[*move_start].class <= Chess::SteppingPiece
         if can_step?(move_start, move_end) &&
-          can_take?(move_start, move_end)
-          self[*move_end] = self[*move_start]
-          self[*move_start] = nil
+            can_take?(move_start, move_end)
+          make_move(move_start, move_end)
         end
       elsif self[*move_start].class == Chess::Pawn
-        # pawn
-        if self[*move_start].color == :w
-          if move_start[0] - move_end[0] == 1 &&
-            move_start[1] == move_end[1]
-            self[*move_end] = self[*move_start]
-            self[*move_start] = nil
-          elsif !self[*move_end].nil? &&
-            self[*move_start].color != self[*move_end].color &&
-            move_start[0] - move_end[0] == 1 &&
-            (move_start[1] - move_end[1]).abs == 1
-            puts "dead piece: #{self[*move_end].color} #{self[*move_end].class}"
-            self[*move_end] = self[*move_start]
-            self[*move_start] = nil
-          end
-        elsif self[*move_start].color == :b
-          if move_start[0] - move_end[0] == -1 &&
-             move_start[1] == move_end[1]
-            self[*move_end] = self[*move_start]
-            self[*move_start] = nil
-          elsif !self[*move_end].nil? &&
-            self[*move_start].color != self[*move_end].color &&
-            move_start[0] - move_end[0] == -1 &&
-            (move_start[1] - move_end[1]).abs == 1
-            puts "dead piece: #{self[*move_end].color} #{self[*move_end].class}"
-            self[*move_end] = self[*move_start]
-            self[*move_start] = nil
-          end
+        if can_pawn_move?(move_start, move_end) ||
+            can_pawn_take?(move_start, move_end)
+          make_move(move_start, move_end)
         end
       else
         raise "Illegal move."
