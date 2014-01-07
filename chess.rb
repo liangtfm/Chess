@@ -43,6 +43,8 @@ module Chess
   end
 
   class SteppingPiece < Piece
+    attr_accessor :move_dirs
+
     def initialize(position, board, color)
       super(position, board, color)
     end
@@ -52,9 +54,8 @@ module Chess
 
     def initialize(position, board, color)
       @token = :Q
-      @queen_moves = []
-      @move_dirs = QUEEN_MOVES
       super(position, board, color)
+      @move_dirs = QUEEN_MOVES
     end
   end
 
@@ -62,6 +63,7 @@ module Chess
     def initialize(position, board, color)
       @token = :R
       super(position, board, color)
+      @move_dirs = ROOK_MOVES
     end
   end
 
@@ -69,6 +71,7 @@ module Chess
     def initialize(position, board, color)
       @token = :B
       super(position, board, color)
+      @move_dirs = BISHOP_MOVES
     end
   end
 
@@ -76,6 +79,7 @@ module Chess
     def initialize(position, board, color)
       @token = :Ki
       super(position, board, color)
+      @move_dirs = KING_MOVES
     end
   end
 
@@ -83,6 +87,7 @@ module Chess
     def initialize(position, board, color)
       @token = :Kn
       super(position, board, color)
+      @move_dirs = KNIGHT_MOVES
     end
   end
 
@@ -90,6 +95,7 @@ module Chess
     def initialize(position, board, color)
       @token = :P
       super(position, board, color)
+      @move_dirs = []
     end
   end
 
@@ -134,7 +140,15 @@ module Chess
 
     end
 
-    def can_move?(move_start, move_end)
+    def can_step?(move_start, move_end)
+      dir,len = cartesian_to_polar(move_start, move_end)
+      step = [move_end[0] - move_start[0], move_end[1] - move_start[1]]
+      return false unless self[*move_start].move_dirs.include?(step)
+
+      true
+    end
+
+    def can_slide?(move_start, move_end)
       dir,len = cartesian_to_polar(move_start, move_end)
       path = []
 
@@ -169,14 +183,24 @@ module Chess
       [theta, radius]
     end
 
-    def move(whence, thither)
+    def move(move_start, move_end)
       # update board
       # raise exception if there is no piece at start
       # or the piece cannot move to end
-      if can_move?(whence, thither) &&
-          can_take?(whence, thither)
-        self[thither.first, thither.last] = self[whence.first, whence.last]
-        self[whence.first, whence.last] = nil
+      if self[*move_start].class <= Chess::SlidingPiece
+        if can_slide?(move_start, move_end) &&
+            can_take?(move_start, move_end)
+          self[*move_end] = self[*move_start]
+          self[move_start.first, move_start.last] = nil
+        end
+      elsif self[*move_start].class <= Chess::SteppingPiece
+        if can_step?(move_start, move_end) &&
+          can_take?(move_start, move_end)
+          self[*move_end] = self[*move_start]
+          self[*move_start] = self[*move_start]
+        end
+      elsif self[*move_start].class == Chess::Pawn
+        # pawn
       else
         raise "Illegal move."
       end
@@ -192,6 +216,14 @@ module Chess
   end
 
 
+  class Game
+
+    def initialize
+
+    end
+
+
+  end
 end
 
 
