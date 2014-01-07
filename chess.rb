@@ -197,10 +197,37 @@ module Chess
         if can_step?(move_start, move_end) &&
           can_take?(move_start, move_end)
           self[*move_end] = self[*move_start]
-          self[*move_start] = self[*move_start]
+          self[*move_start] = nil
         end
       elsif self[*move_start].class == Chess::Pawn
         # pawn
+        if self[*move_start].color == :w
+          if move_start[0] - move_end[0] == 1 &&
+            move_start[1] == move_end[1]
+            self[*move_end] = self[*move_start]
+            self[*move_start] = nil
+          elsif !self[*move_end].nil? &&
+            self[*move_start].color != self[*move_end].color &&
+            move_start[0] - move_end[0] == 1 &&
+            (move_start[1] - move_end[1]).abs == 1
+            puts "dead piece: #{self[*move_end].color} #{self[*move_end].class}"
+            self[*move_end] = self[*move_start]
+            self[*move_start] = nil
+          end
+        elsif self[*move_start].color == :b
+          if move_start[0] - move_end[0] == -1 &&
+             move_start[1] == move_end[1]
+            self[*move_end] = self[*move_start]
+            self[*move_start] = nil
+          elsif !self[*move_end].nil? &&
+            self[*move_start].color != self[*move_end].color &&
+            move_start[0] - move_end[0] == -1 &&
+            (move_start[1] - move_end[1]).abs == 1
+            puts "dead piece: #{self[*move_end].color} #{self[*move_end].class}"
+            self[*move_end] = self[*move_start]
+            self[*move_start] = nil
+          end
+        end
       else
         raise "Illegal move."
       end
