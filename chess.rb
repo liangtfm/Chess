@@ -1,7 +1,18 @@
 module Chess
+  ROOK_MOVES   = [[-1, 0], [ 1, 0],
+                  [ 0,-1], [ 0, 1]]
+  BISHOP_MOVES = [[-1,-1], [-1, 1],
+                  [ 1,-1], [ 1, 1]]
+  QUEEN_MOVES = ROOK_MOVES + BISHOP_MOVES
+  KING_MOVES = QUEEN_MOVES
+  KNIGHT_MOVES = [[-1, 2], [-1,-2],
+                  [ 1,-2], [ 1, 2],
+                  [-2, 1], [-2,-1],
+                  [ 2, 1], [ 2,-1]]
 
   class Piece
     attr_accessor :position, :board, :color
+    attr_reader :token
 
     def initialize(position, board, color)
       @position = position
@@ -32,32 +43,54 @@ module Chess
   end
 
   class SteppingPiece < Piece
+    def initialize(position, board, color)
+      super(position, board, color)
+    end
   end
 
-
-
   class Queen < SlidingPiece
+
     def initialize(position, board, color)
+      @token = :Q
+      @queen_moves = []
+      @move_dirs = QUEEN_MOVES
       super(position, board, color)
     end
   end
 
   class Rook < SlidingPiece
     def initialize(position, board, color)
+      @token = :R
       super(position, board, color)
     end
   end
 
   class Bishop < SlidingPiece
+    def initialize(position, board, color)
+      @token = :B
+      super(position, board, color)
+    end
   end
 
   class King < SteppingPiece
+    def initialize(position, board, color)
+      @token = :Ki
+      super(position, board, color)
+    end
   end
 
   class Knight < SteppingPiece
+    def initialize(position, board, color)
+      @token = :Kn
+      super(position, board, color)
+    end
   end
 
   class Pawn < Piece
+    def initialize(position, board, color)
+      @token = :P
+      super(position, board, color)
+    end
   end
 
   class Board
@@ -77,14 +110,21 @@ module Chess
         self[i,j] = piece.new([i,j], self, color)
         self[k,j] = Pawn.new([k,j], self, color)
       end
+
       nil
+    end
+
+    def draw_board
+      @board.map do |subarr|
+        subarr.map { |i| i.nil? ? :_ : i.token }
+      end
     end
 
     def [](i,j)
       @board[i][j]
     end
 
-    def []=(i,j,k)
+    def []=(i,j,k = nil)
       @board[i][j] = k
     end
 
@@ -94,11 +134,52 @@ module Chess
 
     end
 
-    def move(move_start, move_end)
+    def can_move?(move_start, move_end)
+      dir,len = cartesian_to_polar(move_start, move_end)
+      path = []
+
+      return false unless self[*move_start].move_dirs.include?(dir)
+
+      1.upto(len-1) do |i|
+        next_spot = [move_start[0] + (dir[0] * (i)),
+                     move_start[1] + (dir[1] * (i))]
+
+        path << next_spot
+      end
+
+      return false unless path.all? {|i| self[*i].nil? }
+
+      true
+    end
+
+
+    def can_take?(move_start, move_end)
+      # spot is nil
+      return true if self[*move_end].nil?
+
+      # not the same color
+      self[*move_start].color != self[*move_end].color
+    end
+
+    def cartesian_to_polar(x, y)
+      theta = [(y[0] - x[0]), (y[1] - x[1])]
+      radius = [theta[0].abs, theta[1].abs].max
+      theta[0] = (theta[0].to_f / radius) unless radius == 0
+      theta[1] = (theta[1].to_f / radius) unless radius == 0
+      [theta, radius]
+    end
+
+    def move(whence, thither)
       # update board
       # raise exception if there is no piece at start
       # or the piece cannot move to end
-
+      if can_move?(whence, thither) &&
+          can_take?(whence, thither)
+        self[thither.first, thither.last] = self[whence.first, whence.last]
+        self[whence.first, whence.last] = nil
+      else
+        raise "Illegal move."
+      end
     end
 
     def dup
