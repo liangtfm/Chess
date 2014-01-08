@@ -95,7 +95,7 @@ class Board
   def can_step?(move_start, move_end)
     dir,len = cartesian_to_polar(move_start, move_end)
     step = [move_end[0] - move_start[0], move_end[1] - move_start[1]]
-    return false unless self[*move_start].move_dirs.include?(step)
+    return false unless self[move_start].move_dirs.include?(step)
 
     true
   end
@@ -105,7 +105,7 @@ class Board
     path = []
 
     # make sure desired move is in the right direction
-    return false unless self[*move_start].move_dirs.include?(dir)
+    return false unless self[move_start].move_dirs.include?(dir)
 
     # calculate the path (intermediary tiles)
     1.upto(len-1) do |i|
@@ -116,39 +116,39 @@ class Board
     end
 
     # make sure the path is clear
-    return false unless path.all? {|i| self[*i].nil? }
+    return false unless path.all? {|i| self[i].nil? }
 
     true
   end
 
   def can_take?(move_start, move_end)
     # spot is nil
-    return true if self[*move_end].nil?
+    return true if self[move_end].nil?
 
     # not the same color
-    self[*move_start].color != self[*move_end].color
+    self[move_start].color != self[move_end].color
   end
 
   def can_pawn_move?(move_start, move_end)
     # No hard returns
-    if self[*move_start].color == :w
+    if self[move_start].color == :w
       return move_start[0] - move_end[0] == 1 &&
         move_start[1] == move_end[1]
-    elsif self[*move_start].color == :b
+    elsif self[move_start].color == :b
       return move_start[0] - move_end[0] == -1 &&
          move_start[1] == move_end[1]
     end
   end
 
   def can_pawn_take?(move_start, move_end)
-    if self[*move_start].color == :w
-      return self[*move_end] &&
-        self[*move_start].color != self[*move_end].color &&
+    if self[move_start].color == :w
+      return self[move_end] &&
+        self[move_start].color != self[move_end].color &&
         move_start[0] - move_end[0] == 1 &&
         (move_start[1] - move_end[1]).abs == 1
-    elsif self[*move_start].color == :b
-      return !self[*move_end].nil? &&
-        self[*move_start].color != self[*move_end].color &&
+    elsif self[move_start].color == :b
+      return !self[move_end].nil? &&
+        self[move_start].color != self[move_end].color &&
         move_start[0] - move_end[0] == -1 &&
         (move_start[1] - move_end[1]).abs == 1
     end
@@ -163,28 +163,28 @@ class Board
   end
 
   def make_move(move_start, move_end)
-    #position_start = self[*move_start].position
-    position_end = *move_end
-    self[*move_start].position = position_end
-    self[*move_end] = self[*move_start]
-    self[*move_start] = nil
+    #position_start = self[move_start].position
+    position_end = move_end
+    self[move_start].position = position_end
+    self[move_end] = self[move_start]
+    self[move_start] = nil
   end
 
   def move(move_start, move_end)
     # update board
     # raise exception if there is no piece at start
     # or the piece cannot move to end
-    if self[*move_start].class <= Chess::SlidingPiece
+    if self[move_start].class <= Chess::SlidingPiece
       if can_slide?(move_start, move_end) &&
           can_take?(move_start, move_end)
         make_move(move_start, move_end)
       end
-    elsif self[*move_start].class <= Chess::SteppingPiece
+    elsif self[move_start].class <= Chess::SteppingPiece
       if can_step?(move_start, move_end) &&
           can_take?(move_start, move_end)
         make_move(move_start, move_end)
       end
-    elsif self[*move_start].class == Chess::Pawn
+    elsif self[move_start].class == Chess::Pawn
       if can_pawn_move?(move_start, move_end) ||
           can_pawn_take?(move_start, move_end)
         make_move(move_start, move_end)
