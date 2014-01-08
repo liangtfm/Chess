@@ -34,7 +34,7 @@ class Board
     @board[x][y]
   end
 
-  def []=(pos, k=nil)
+  def []=(pos, k)
     x, y = pos
     @board[x][y] = k
   end
@@ -77,13 +77,15 @@ class Board
     self[move_start] = nil
   end
 
-  def move(move_start, move_end)
+  def move(move_start, move_end, color)
     piece = self[move_start]
 
-    if self[move_start].valid_moves.include?(move_end)
-      self[move_start].pos = move_end
-      self[move_end] = self[move_start]
-      self[move_start] = nil
+    if self[move_start].valid_moves.include?(move_end) &&
+      self[move_start].color == color
+      if self[move_start].move_into_check?(move_end)
+        raise "Cannot move into check."
+      end
+      move!(move_start, move_end)
     else
       raise "Illegal move."
     end
@@ -94,6 +96,4 @@ class Board
     new_board.board = self.board.deep_dup
     new_board
   end
-
-
 end

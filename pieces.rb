@@ -32,16 +32,14 @@ class Piece
   end
 
   def can_take?(move_end)
-    # spot is nil
     return true if @board[move_end].nil?
 
-    # not the same color
     color != @board[move_end].color
   end
 
   def move_into_check?(position)
     new_board = @board.dup
-    # to refactor
+
     new_board.board.each_index do |i|
       new_board.board.each_index do |j|
         if new_board[[i,j]]
@@ -91,10 +89,8 @@ class SlidingPiece < Piece
     dir,len = find_dir(@pos, move_end)
     path = []
 
-    # make sure desired move is in the right direction
     return false unless move_dirs.include?(dir)
 
-    # calculate the path (intermediary tiles)
     1.upto(len-1) do |i|
       next_spot = [@pos[0] + (dir[0] * (i)),
                    @pos[1] + (dir[1] * (i))]
@@ -102,10 +98,7 @@ class SlidingPiece < Piece
       path << next_spot
     end
 
-    # make sure the path is clear
-    return false unless path.all? {|i| @board[i].nil? }
-
-    true
+    path.all? {|i| @board[i].nil? }
   end
 
   def find_dir(x, y)
@@ -124,8 +117,7 @@ class SteppingPiece < Piece
   end
 
   def valid_move?(move_end)
-    can_step?(move_end) &&
-      can_take?(move_end)
+    can_step?(move_end) && can_take?(move_end)
   end
 
   def moves
@@ -147,9 +139,7 @@ class SteppingPiece < Piece
 
   def can_step?(move_end)
     step = [move_end[0] - @pos[0], move_end[1] - @pos[1]]
-    return false unless move_dirs.include?(step)
-
-    true
+    move_dirs.include?(step)
   end
 end
 
@@ -219,8 +209,6 @@ class Pawn < SteppingPiece
     PAWN_MOVES
   end
 
-
-
   def valid_move?(move_end)
     can_move?(move_end) || can_take?(move_end)
   end
@@ -237,8 +225,8 @@ class Pawn < SteppingPiece
     n = color == :w ? 1 : -1
 
     @board[move_end] &&
-    color != @board[move_end].color &&
-    pos[0] - move_end[0] == n &&
-    (pos[1] - move_end[1]).abs == 1
+      color != @board[move_end].color &&
+      pos[0] - move_end[0] == n &&
+      (pos[1] - move_end[1]).abs == 1
   end
 end
