@@ -40,59 +40,70 @@ class Board
   end
 
   def in_check?(color)
-    king = find_king(color)
-    check = false
-    @board.each_with_index do |row, i|
-      row.each_with_index do |cell, j|
-        next if cell.nil? || cell.color == color
-        # piece agnostic
-        if cell.class.superclass == Chess::SteppingPiece
-          check = true if can_step?([i,j], king.position)
-        elsif cell.class.superclass == Chess::SlidingPiece
-          check = true if can_slide?([i,j], king.position)
-        elsif cell.class == Chess::Pawn
-          check = true if can_pawn_take?([i,j], king.position)
-        end
-      end
-    end
+    king = find_king(color).first
 
-    check
+    @board.flatten.any? do |cell|
+      next if cell.nil? || cell.color == color
+      cell.valid_moves.include?(king.pos)
+    end
   end
 
   def checkmate?(color)
     return false unless in_check?(color)
 
-    # iterate thru every position on the board twice
-    (0...8).each do |i|
-      (0...8).each do |j|
-        (0...8).each do |m|
-          (0...8).each do |n|
-            if can_step?([i,j],[m,n]) || can_slide?([i,j],[m,n]) ||
-              can_pawn_take?([i,j],[m,n]) || can_pawn_move?([i,j],[m,n])
-              new_board = dup
-              new_board.move([i,j],[m,n])
-              return true if new_board.in_check?(color)
-            end
-          end
-        end
+    # pieces = []
+    # @board.flatten.each do |piece|
+    #   next unless piece && piece.color == color
+    #   pieces << piece
+    # end
+    #
+    # pieces.none? do |piece|
+    #   piece.valid_moves.any?
+    # end
+
+    pieces = @board.flatten.select do |piece|
+      piece && piece.color == color
+    end
+
+    #checkmate if any piece cannot move player out of in_check?
+
+    pieces.all? do |piece|
+      piece.valid_moves.all? do |move|
+        piece.move_into_check?(move)
       end
     end
 
-    false
+
+    # iterate thru every position on the board twice
+    # (0...8).each do |i|
+ #      (0...8).each do |j|
+ #        (0...8).each do |m|
+ #          (0...8).each do |n|
+ #            if can_step?([i,j],[m,n]) || can_slide?([i,j],[m,n]) ||
+ #              can_pawn_take?([i,j],[m,n]) || can_pawn_move?([i,j],[m,n])
+ #              new_board = dup
+ #              new_board.move([i,j],[m,n])
+ #              return true if new_board.in_check?(color)
+ #            end
+ #          end
+ #        end
+ #      end
+ #    end
+
+    #false
   end
 
   def find_king(color)
-    king = nil
-
-    # @board.flatten.select { |piece| }
-
-    @board.each do |row|
-      row.each do |cell|
-        king = cell if cell.is_a?(Chess::King) && cell.color == color
-      end
+    @board.flatten.select do |piece|
+      piece.is_a?(King) && piece.color == color
     end
-    king
+
   end
+
+  #def move!(move_start, move_end)
+  #  self[move_end] = self[move_start]
+  #  self[move_start] = nil
+  #end
 
   def move!(move_start, move_end)
     self[move_start].pos = move_end
@@ -104,7 +115,9 @@ class Board
     piece = self[move_start]
 
     if self[move_start].valid_moves.include?(move_end)
-      move!(move_start, move_end)
+      self[move_start].pos = move_end
+      self[move_end] = self[move_start]
+      self[move_start] = nil
     else
       raise "Illegal move."
     end
@@ -113,6 +126,7 @@ class Board
   def dup
     new_board = Board.new
     new_board.board = self.board.deep_dup
+    # new_board.board.flatten.select { |i| i }.each {|i| i.board = self.board.deep_dup}
     new_board
   end
 
