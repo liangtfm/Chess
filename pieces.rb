@@ -23,18 +23,12 @@ class Piece
   end
 
   def moves
-    moves = []
   end
 
   def valid_move?(pos)
   end
 
   def valid_moves
-    # arr = []
-    # @board.flatten.each do |pos|
-    #   arr << pos if valid_pos?(pos)
-    # end
-    # arr
   end
 
   def can_take?(move_end)
@@ -59,23 +53,22 @@ class SlidingPiece < Piece
   end
 
   def moves
-  end
-
-  def valid_moves
-    arr = []
+    possible_moves = []
 
     move_dirs.each do |dir|
       1.upto(7) do |len|
         position = [@pos[0] + (dir[0] * len), @pos[1] + (dir[1] * len)]
-        if valid_move?(position)
-          arr << position
-        else
-          break
+        if (0..7).include?(position[0]) && (0..7).include?(position[1])
+          possible_moves << position
         end
       end
     end
 
-    arr
+    possible_moves
+  end
+
+  def valid_moves
+    moves.select { |move| valid_move?(move) }
   end
 
   def valid_move?(move_end)
@@ -113,7 +106,6 @@ class SlidingPiece < Piece
 end
 
 class SteppingPiece < Piece
-  #attr_accessor :move_dirs
 
   def initialize(pos, board, color)
     super(pos, board, color)
@@ -124,15 +116,21 @@ class SteppingPiece < Piece
     can_step?(move_end) && can_take?(move_end)
   end
 
-  def valid_moves
-    arr = []
+  def moves
+    possible_moves = []
 
     move_dirs.each do |dir|
       position = [@pos[0] + dir[0], @pos[1] + dir[1]]
-      arr << position if valid_move?(position)
+      if (0..7).include?(position[0]) && (0..7).include?(position[1])
+        possible_moves << position
+      end
     end
 
-    arr
+    possible_moves
+  end
+
+  def valid_moves
+    moves.select { |move| valid_move?(move) }
   end
 
   def can_step?(move_end)
@@ -153,8 +151,6 @@ class Queen < SlidingPiece
   def move_dirs
     QUEEN_MOVES
   end
-
-
 end
 
 class Rook < SlidingPiece
@@ -181,7 +177,7 @@ end
 
 class King < SteppingPiece
   def initialize(pos, board, color)
-    @token = :Ki
+    @token = :K
     super(pos, board, color)
   end
 
@@ -192,7 +188,7 @@ end
 
 class Knight < SteppingPiece
   def initialize(pos, board, color)
-    @token = :Kn
+    @token = :k
     super(pos, board, color)
   end
 
@@ -201,54 +197,34 @@ class Knight < SteppingPiece
   end
 end
 
-class Pawn < Piece
+class Pawn < SteppingPiece
   def initialize(pos, board, color)
     @token = :P
     super(pos, board, color)
   end
 
-
   def move_dirs
     PAWN_MOVES
   end
 
-  def valid_moves
-    arr = []
-
-    move_dirs.each do |dir|
-      position = [@pos[0] + dir[0], @pos[1] + dir[1]]
-      arr << position if valid_move?(position)
-    end
-
-    arr
-  end
-
   def valid_move?(move_end)
-    can_pawn_move?(move_end) || can_pawn_take?(move_end)
+    can_move?(move_end) || can_take?(move_end)
   end
 
-  def can_pawn_move?(move_end)
-    # No hard returns
-    if color == :w
-      return pos[0] - move_end[0] == 1 &&
-        pos[1] == move_end[1]
-    elsif color == :b
-      return pos[0] - move_end[0] == -1 &&
-         pos[1] == move_end[1]
-    end
+  def can_move?(move_end)
+    n = color == :w ? 1 : -1
+
+    pos[0] - move_end[0] == n &&
+      pos[1] == move_end[1] &&
+      @board[move_end].nil?
   end
 
-  def can_pawn_take?(move_end)
-    if color == :w
-      return @board[move_end] &&
-        pos.color != @board[move_end].color &&
-        pos[0] - move_end[0] == 1 &&
-        (pos[1] - move_end[1]).abs == 1
-    elsif color == :b
-      return @board[move_end] &&
-        color != @board[move_end].color &&
-        pos[0] - move_end[0] == -1 &&
-        (pos[1] - move_end[1]).abs == 1
-    end
+  def can_take?(move_end)
+    n = color == :w ? 1 : -1
+
+    @board[move_end] &&
+    color != @board[move_end].color &&
+    pos[0] - move_end[0] == n &&
+    (pos[1] - move_end[1]).abs == 1
   end
 end

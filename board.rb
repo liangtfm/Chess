@@ -102,7 +102,6 @@ class Board
 
   def move(move_start, move_end)
     piece = self[move_start]
-    p piece.valid_moves
 
     if self[move_start].valid_moves.include?(move_end)
       move!(move_start, move_end)
