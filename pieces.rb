@@ -40,27 +40,16 @@ class Piece
   end
 
   def move_into_check?(position)
-    #need to put this check on pieces' moves
     new_board = @board.dup
+    # to refactor
     new_board.board.each_index do |i|
       new_board.board.each_index do |j|
         if new_board[[i,j]]
           new_board[[i,j]] = new_board[[i,j]].dup(new_board)
-          # p "Duped piece #{i},#{j}"
         end
       end
     end
     new_board.move!(@pos, position)
-    # p new_board[[0,4]].nil?
-    # p new_board[[1,4]].nil?
-    # # new_board[@pos] = nil
-    # #new_board[pos] = self.new(pos,new_board,color)
-    # p @pos
-    # p position
-    # p new_board.find_king(:b)[0].pos
-    # p new_board[[1,4]].pos
-    # p new_board.draw_board
-    # p @board.draw_board
     new_board.in_check?(@color)
   end
 
@@ -95,7 +84,7 @@ class SlidingPiece < Piece
   end
 
   def valid_move?(move_end)
-    can_slide?(move_end) && can_take?(move_end) #&& !move_into_check?(move_end)
+    can_slide?(move_end) && can_take?(move_end)
   end
 
   def can_slide?(move_end)
@@ -136,7 +125,7 @@ class SteppingPiece < Piece
 
   def valid_move?(move_end)
     can_step?(move_end) &&
-      can_take?(move_end) # && !move_into_check?(move_end)
+      can_take?(move_end)
   end
 
   def moves

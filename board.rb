@@ -51,16 +51,6 @@ class Board
   def checkmate?(color)
     return false unless in_check?(color)
 
-    # pieces = []
-    # @board.flatten.each do |piece|
-    #   next unless piece && piece.color == color
-    #   pieces << piece
-    # end
-    #
-    # pieces.none? do |piece|
-    #   piece.valid_moves.any?
-    # end
-
     pieces = @board.flatten.select do |piece|
       piece && piece.color == color
     end
@@ -72,25 +62,6 @@ class Board
         piece.move_into_check?(move)
       end
     end
-
-
-    # iterate thru every position on the board twice
-    # (0...8).each do |i|
- #      (0...8).each do |j|
- #        (0...8).each do |m|
- #          (0...8).each do |n|
- #            if can_step?([i,j],[m,n]) || can_slide?([i,j],[m,n]) ||
- #              can_pawn_take?([i,j],[m,n]) || can_pawn_move?([i,j],[m,n])
- #              new_board = dup
- #              new_board.move([i,j],[m,n])
- #              return true if new_board.in_check?(color)
- #            end
- #          end
- #        end
- #      end
- #    end
-
-    #false
   end
 
   def find_king(color)
@@ -99,11 +70,6 @@ class Board
     end
 
   end
-
-  #def move!(move_start, move_end)
-  #  self[move_end] = self[move_start]
-  #  self[move_start] = nil
-  #end
 
   def move!(move_start, move_end)
     self[move_start].pos = move_end
@@ -126,7 +92,6 @@ class Board
   def dup
     new_board = Board.new
     new_board.board = self.board.deep_dup
-    # new_board.board.flatten.select { |i| i }.each {|i| i.board = self.board.deep_dup}
     new_board
   end
 
