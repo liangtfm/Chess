@@ -1,4 +1,5 @@
 require './pieces.rb'
+require './board.rb'
 
 module Chess
 
