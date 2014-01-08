@@ -4,10 +4,14 @@ BISHOP_MOVES = [[-1,-1], [-1, 1],
                 [ 1,-1], [ 1, 1]]
 QUEEN_MOVES = ROOK_MOVES + BISHOP_MOVES
 KING_MOVES = QUEEN_MOVES
+PAWN_MOVES = [[1,-1],[1,0],[1,1],
+              [-1,-1],[-1,0],[-1,1]]
 KNIGHT_MOVES = [[-1, 2], [-1,-2],
                 [ 1,-2], [ 1, 2],
                 [-2, 1], [-2,-1],
                 [ 2, 1], [ 2,-1]]
+
+
 class Piece
   attr_accessor :pos, :board, :color
   attr_reader :token
@@ -26,16 +30,16 @@ class Piece
   end
 
   def valid_moves
-    arr = []
-    @board.flatten.each do |pos|
-      arr << pos if valid_pos?(pos)
-    end
-    arr
+    # arr = []
+    # @board.flatten.each do |pos|
+    #   arr << pos if valid_pos?(pos)
+    # end
+    # arr
   end
 
   def can_take?(move_end)
     # spot is nil
-    return true if move_end.nil?
+    return true if @board[move_end].nil?
 
     # not the same color
     color != @board[move_end].color
@@ -62,7 +66,7 @@ class SlidingPiece < Piece
 
     move_dirs.each do |dir|
       1.upto(7) do |len|
-        position = @pos + [(dir[0] * len, dir[1] * len)]
+        position = [@pos[0] + (dir[0] * len), @pos[1] + (dir[1] * len)]
         if valid_move?(position)
           arr << position
         else
@@ -94,12 +98,11 @@ class SlidingPiece < Piece
     end
 
     # make sure the path is clear
-    return false unless path.all? {|i| self[i].nil? }
+    return false unless path.all? {|i| @board[i].nil? }
 
     true
   end
 
-  private
   def find_dir(x, y)
     dir = [(y[0] - x[0]), (y[1] - x[1])]
     len = [dir[0].abs, dir[1].abs].max
@@ -117,21 +120,24 @@ class SteppingPiece < Piece
   end
 
   def valid_move?(move_end)
+    return false unless [(0..8)]
     can_step?(move_end) && can_take?(move_end)
   end
 
   def valid_moves
     arr = []
+
     move_dirs.each do |dir|
-      position = @pos + dir
-      arr << dir if valid_move?(position)
+      position = [@pos[0] + dir[0], @pos[1] + dir[1]]
+      arr << position if valid_move?(position)
     end
+
     arr
   end
 
   def can_step?(move_end)
-    step = [move_end[0] - pos[0], move_end[1] - pos[1]]
-    return false unless self[pos].move_dirs.include?(step)
+    step = [move_end[0] - @pos[0], move_end[1] - @pos[1]]
+    return false unless move_dirs.include?(step)
 
     true
   end
@@ -201,6 +207,22 @@ class Pawn < Piece
     super(pos, board, color)
   end
 
+
+  def move_dirs
+    PAWN_MOVES
+  end
+
+  def valid_moves
+    arr = []
+
+    move_dirs.each do |dir|
+      position = [@pos[0] + dir[0], @pos[1] + dir[1]]
+      arr << position if valid_move?(position)
+    end
+
+    arr
+  end
+
   def valid_move?(move_end)
     can_pawn_move?(move_end) || can_pawn_take?(move_end)
   end
@@ -230,4 +252,3 @@ class Pawn < Piece
     end
   end
 end
-

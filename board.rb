@@ -1,4 +1,5 @@
 require './deep_dup.rb'
+require './pieces.rb'
 
 class Board
   PIECES = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
@@ -14,8 +15,9 @@ class Board
   def make_board(color, i, k)
     8.times do |j|
       piece = PIECES[j]
-      self[i,j] = piece.new([i,j], self, color)
-      self[k,j] = Pawn.new([k,j], self, color)
+      pos_piece, pos_pawn = [i,j], [k,j]
+      self[pos_piece] = piece.new(pos_piece, self, color)
+      self[pos_pawn] = Pawn.new(pos_pawn, self, color)
     end
 
     nil
@@ -92,33 +94,18 @@ class Board
     king
   end
 
-  def make_move(move_start, move_end)
-    #position_start = self[move_start].position
-    position_end = move_end
-    self[move_start].position = position_end
+  def move!(move_start, move_end)
+    self[move_start].pos = move_end
     self[move_end] = self[move_start]
     self[move_start] = nil
   end
 
   def move(move_start, move_end)
-    # update board
-    # raise exception if there is no piece at start
-    # or the piece cannot move to end
-    if self[move_start].class <= Chess::SlidingPiece
-      if can_slide?(move_start, move_end) &&
-          can_take?(move_start, move_end)
-        make_move(move_start, move_end)
-      end
-    elsif self[move_start].class <= Chess::SteppingPiece
-      if can_step?(move_start, move_end) &&
-          can_take?(move_start, move_end)
-        make_move(move_start, move_end)
-      end
-    elsif self[move_start].class == Chess::Pawn
-      if can_pawn_move?(move_start, move_end) ||
-          can_pawn_take?(move_start, move_end)
-        make_move(move_start, move_end)
-      end
+    piece = self[move_start]
+    p piece.valid_moves
+
+    if self[move_start].valid_moves.include?(move_end)
+      move!(move_start, move_end)
     else
       raise "Illegal move."
     end
