@@ -30,7 +30,7 @@ class Piece
 end
 
 class SlidingPiece < Piece
-  attr_accessor :move_dirs
+  #attr_accessor :move_dirs
 
   def initialize(position, board, color)
     super(position, board, color)
@@ -41,7 +41,7 @@ class SlidingPiece < Piece
 end
 
 class SteppingPiece < Piece
-  attr_accessor :move_dirs
+  #attr_accessor :move_dirs
 
   def initialize(position, board, color)
     super(position, board, color)
@@ -53,7 +53,10 @@ class Queen < SlidingPiece
   def initialize(position, board, color)
     @token = :Q
     super(position, board, color)
-    @move_dirs = QUEEN_MOVES
+  end
+
+  def move_dirs
+    QUEEN_MOVES
   end
 end
 
@@ -61,7 +64,10 @@ class Rook < SlidingPiece
   def initialize(position, board, color)
     @token = :R
     super(position, board, color)
-    @move_dirs = ROOK_MOVES
+  end
+
+  def move_dirs
+    ROOK_MOVES
   end
 end
 
@@ -69,7 +75,10 @@ class Bishop < SlidingPiece
   def initialize(position, board, color)
     @token = :B
     super(position, board, color)
-    @move_dirs = BISHOP_MOVES
+  end
+
+  def move_dirs
+    BISHOP_MOVES
   end
 end
 
@@ -77,7 +86,10 @@ class King < SteppingPiece
   def initialize(position, board, color)
     @token = :Ki
     super(position, board, color)
-    @move_dirs = KING_MOVES
+  end
+
+  def move_dirs
+    KING_MOVES
   end
 end
 
@@ -85,7 +97,10 @@ class Knight < SteppingPiece
   def initialize(position, board, color)
     @token = :Kn
     super(position, board, color)
-    @move_dirs = KNIGHT_MOVES
+  end
+
+  def move_dirs
+    KNIGHT_MOVES
   end
 end
 
@@ -93,7 +108,7 @@ class Pawn < Piece
   def initialize(position, board, color)
     @token = :P
     super(position, board, color)
-    @move_dirs = []
   end
+
 end
 
