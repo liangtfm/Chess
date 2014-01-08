@@ -55,8 +55,6 @@ class Board
       piece && piece.color == color
     end
 
-    #checkmate if any piece cannot move player out of in_check?
-
     pieces.all? do |piece|
       piece.valid_moves.all? do |move|
         piece.move_into_check?(move)

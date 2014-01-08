@@ -22,15 +22,6 @@ class Piece
     @color = color
   end
 
-  def moves
-  end
-
-  def valid_move?(pos)
-  end
-
-  def valid_moves
-  end
-
   def can_take?(move_end)
     return true if @board[move_end].nil?
 
