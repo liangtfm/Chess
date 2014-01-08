@@ -28,9 +28,6 @@ module Chess
       new_board = @board.dup
       new_board.move(@position, pos)
       new_board.in_check?(@color)
-
-      #
-
     end
   end
 
@@ -200,8 +197,10 @@ module Chess
       dir,len = cartesian_to_polar(move_start, move_end)
       path = []
 
+      # make sure desired move is in the right direction
       return false unless self[*move_start].move_dirs.include?(dir)
 
+      # calculate the path (intermediary tiles)
       1.upto(len-1) do |i|
         next_spot = [move_start[0] + (dir[0] * (i)),
                      move_start[1] + (dir[1] * (i))]
@@ -209,11 +208,11 @@ module Chess
         path << next_spot
       end
 
+      # make sure the path is clear
       return false unless path.all? {|i| self[*i].nil? }
 
       true
     end
-
 
     def can_take?(move_start, move_end)
       # spot is nil
