@@ -1,104 +1,6 @@
+require './pieces.rb'
+
 module Chess
-  ROOK_MOVES   = [[-1, 0], [ 1, 0],
-                  [ 0,-1], [ 0, 1]]
-  BISHOP_MOVES = [[-1,-1], [-1, 1],
-                  [ 1,-1], [ 1, 1]]
-  QUEEN_MOVES = ROOK_MOVES + BISHOP_MOVES
-  KING_MOVES = QUEEN_MOVES
-  KNIGHT_MOVES = [[-1, 2], [-1,-2],
-                  [ 1,-2], [ 1, 2],
-                  [-2, 1], [-2,-1],
-                  [ 2, 1], [ 2,-1]]
-
-  class Piece
-    attr_accessor :position, :board, :color
-    attr_reader :token
-
-    def initialize(position, board, color)
-      @position = position
-      @board = board
-      @color = color
-    end
-
-    def moves
-      moves = []
-    end
-
-    def move_into_check?(pos)
-      new_board = @board.dup
-      new_board.move(@position, pos)
-      new_board.in_check?(@color)
-    end
-  end
-
-  class SlidingPiece < Piece
-    attr_accessor :move_dirs
-
-    def initialize(position, board, color)
-      super(position, board, color)
-    end
-
-    def moves
-    end
-  end
-
-  class SteppingPiece < Piece
-    attr_accessor :move_dirs
-
-    def initialize(position, board, color)
-      super(position, board, color)
-    end
-  end
-
-  class Queen < SlidingPiece
-
-    def initialize(position, board, color)
-      @token = :Q
-      super(position, board, color)
-      @move_dirs = QUEEN_MOVES
-    end
-  end
-
-  class Rook < SlidingPiece
-    def initialize(position, board, color)
-      @token = :R
-      super(position, board, color)
-      @move_dirs = ROOK_MOVES
-    end
-  end
-
-  class Bishop < SlidingPiece
-    def initialize(position, board, color)
-      @token = :B
-      super(position, board, color)
-      @move_dirs = BISHOP_MOVES
-    end
-  end
-
-  class King < SteppingPiece
-    def initialize(position, board, color)
-      @token = :Ki
-      super(position, board, color)
-      @move_dirs = KING_MOVES
-    end
-  end
-
-  class Knight < SteppingPiece
-    def initialize(position, board, color)
-      @token = :Kn
-      super(position, board, color)
-      @move_dirs = KNIGHT_MOVES
-    end
-  end
-
-  class Pawn < Piece
-    def initialize(position, board, color)
-      @token = :P
-      super(position, board, color)
-      @move_dirs = []
-    end
-  end
-
   class Board
     PIECES = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
 
@@ -126,12 +28,14 @@ module Chess
       end
     end
 
-    def [](i,j)
-      @board[i][j]
+    def [](pos)
+      x, y = pos
+      @board[x][y]
     end
 
-    def []=(i,j,k = nil)
-      @board[i][j] = k
+    def []=(pos, k=nil)
+      x, y = pos
+      @board[x][y] = k
     end
 
     def in_check?(color)
@@ -140,6 +44,7 @@ module Chess
       @board.each_with_index do |row, i|
         row.each_with_index do |cell, j|
           next if cell.nil? || cell.color == color
+          # piece agnostic
           if cell.class.superclass == Chess::SteppingPiece
             check = true if can_step?([i,j], king.position)
           elsif cell.class.superclass == Chess::SlidingPiece
@@ -177,6 +82,9 @@ module Chess
 
     def find_king(color)
       king = nil
+
+      # @board.flatten.select { |piece| }
+
       @board.each do |row|
         row.each do |cell|
           king = cell if cell.is_a?(Chess::King) && cell.color == color
@@ -223,6 +131,7 @@ module Chess
     end
 
     def can_pawn_move?(move_start, move_end)
+      # No hard returns
       if self[*move_start].color == :w
         return move_start[0] - move_end[0] == 1 &&
           move_start[1] == move_end[1]
@@ -234,7 +143,7 @@ module Chess
 
     def can_pawn_take?(move_start, move_end)
       if self[*move_start].color == :w
-        return !self[*move_end].nil? &&
+        return self[*move_end] &&
           self[*move_start].color != self[*move_end].color &&
           move_start[0] - move_end[0] == 1 &&
           (move_start[1] - move_end[1]).abs == 1
