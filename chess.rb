@@ -37,16 +37,19 @@ class Game
 
   def take_turn(color)
     begin
-      puts "What piece would you like to move? (ex. g1)"
+      puts "It's #{color}'s turn!"
+      puts "Which piece would you like to move? (ex. b1)"
       start_input = gets.chomp.downcase.split("")
       start_move = [KEY_MAP[start_input.last],
                     start_input.first.ord - "a".ord]
-      puts "Where would you like to move it?"
+      puts "Where would you like to move it? (ex. c3)"
       end_input = gets.chomp.downcase.split("")
       end_move = [KEY_MAP[end_input.last],
                     end_input.first.ord - "a".ord]
       @board.move(start_move, end_move, color)
+      puts "Moved!"
     rescue
+      puts "Invalid input. Try again!"
       retry
     end
     nil
