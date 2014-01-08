@@ -48,6 +48,9 @@ class Game
 
     loop do
       render
+      if @board.in_check?(color)
+        puts "#{color} is in check!"
+      end
       puts "It's #{color}'s turn!"
       take_turn(color)
       color == :w ? color = :b : color = :w
@@ -72,7 +75,7 @@ class Game
       @board.move(start_move, end_move, color)
       puts "Moved!"
     rescue
-      puts "Invalid input. Try again!"
+      puts "Invalid move. Try again!"
       retry
     end
     nil
